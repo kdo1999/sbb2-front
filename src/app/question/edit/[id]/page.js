@@ -70,7 +70,7 @@ export default function UpdateQuestion({params}) {
             const result = await response.json();
 
             if (response.ok) {
-                router.push(`/question/${result.data.id}`);
+                router.push(`/question/${id}`);
             } else if (result.code === 400) {
                 const newErrors = {};
                 result.errorDetail.errors.forEach(error => {

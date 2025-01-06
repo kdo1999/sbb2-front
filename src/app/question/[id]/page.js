@@ -3,6 +3,7 @@
 import React, {useEffect, useState} from 'react';
 import Link from 'next/link';
 import {useRouter} from 'next/navigation';
+import ReactMarkdown from 'react-markdown';
 
 export default function QuestionDetail({params}) {
     const [data, setData] = useState(null);
@@ -265,7 +266,9 @@ export default function QuestionDetail({params}) {
                         )}
                     </div>
                     <div className="prose max-w-none mb-6">
-                        <p className="text-gray-700">{content}</p>
+                            <ReactMarkdown  className="text-gray-700">
+                                {content}
+                            </ReactMarkdown>
                     </div>
                     <div className="flex flex-wrap items-center text-sm text-gray-600 mb-6">
                         <div className="flex items-center mr-6 mb-2">
