@@ -1,4 +1,3 @@
-// src/app/question/[id]/page.js
 "use client";
 import React, {useEffect, useState} from 'react';
 import Link from 'next/link';
@@ -6,7 +5,8 @@ import {useRouter} from 'next/navigation';
 import ReactMarkdown from 'react-markdown';
 
 export default function QuestionDetail({params}) {
-    const [data, setData] = useState(null);
+    const [question, setQuestion] = useState(null);
+    const [answerList, setAnswerList] = useState([]);
     const [id, setId] = useState(null);
     const [answerContent, setAnswerContent] = useState('');
     const [errors, setErrors] = useState({});
@@ -24,29 +24,56 @@ export default function QuestionDetail({params}) {
 
     useEffect(() => {
         if (id) {
-            const fetchData = async () => {
-                const accessToken = localStorage.getItem('accessToken');
-                if (!accessToken) {
+            const accessToken = localStorage.getItem('accessToken');
+            if (!accessToken) {
+                router.push('/login');
+            }
+            const fetchQuestion = async () => {
+                const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/question/${id}`, {
+                    cache: 'no-store',
+                    credentials: 'include',
+                    headers: {
+                        'Authorization': accessToken
+                    }
+                });
+                const result = await response.json();
+                if (result.code === 401) {
+                    localStorage.removeItem('accessToken');
+                    localStorage.removeItem('username');
                     router.push('/login');
                 } else {
-                    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/question/${id}`, {
-                        cache: 'no-store',
-                        credentials: 'include',
-                        headers: {
-                            'Authorization': accessToken
-                        }
-                    });
-                    const result = await response.json();
-                    if (result.code === 401) {
-                        localStorage.removeItem('accessToken');
-                        localStorage.removeItem('username');
-                        router.push('/login');
-                    } else {
-                        setData(result.data);
-                    }
+                    setQuestion(result.data);
                 }
             };
-            fetchData();
+            fetchQuestion();
+        }
+    }, [id]);
+
+    useEffect(() => {
+        if (id) {
+            const accessToken = localStorage.getItem('accessToken');
+            if (!accessToken) {
+                router.push('/login');
+            }
+            const fetchAnswer = async () => {
+                const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/answer?questionId=${id}`, {
+                    cache: 'no-store',
+                    credentials: 'include',
+                    headers: {
+                        'Authorization': accessToken
+                    }
+                });
+                const result = await response.json();
+                if (result.code === 401) {
+                    localStorage.removeItem('accessToken');
+                    localStorage.removeItem('username');
+                    router.push('/login');
+                } else {
+                    setAnswerList(result.data.content);
+                }
+            };
+
+            fetchAnswer();
         }
     }, [id]);
 
@@ -80,10 +107,10 @@ export default function QuestionDetail({params}) {
                 setAnswerContent('');
                 setIsLoading(false);
 
-                setData((prevData) => ({
+                setAnswerList((prevData) => [
                     ...prevData,
-                    answerList: [...prevData.answerList, result.data]
-                }));
+                    result.data
+                ]);
             } else if (result.code === 400) {
                 const newErrors = {};
                 result.errorDetail.errors.forEach(error => {
@@ -155,10 +182,7 @@ export default function QuestionDetail({params}) {
             });
 
             if (response.ok) {
-                setData((prevData) => ({
-                    ...prevData,
-                    answerList: prevData.answerList.filter((answer) => answer.id !== answerId)
-                }));
+                setAnswerList((prevData) => prevData.filter((answer) => answer.id !== answerId));
             } else if (response.code === 401) {
                 alert('답변 삭제는 답변 작성자만 가능합니다.');
             } else if (response.code === 400) {
@@ -168,7 +192,7 @@ export default function QuestionDetail({params}) {
             }
         }
     };
-    const handlePostVoter = async (questionId, type) => {
+    const handlePostVoter = async (id, type) => {
         const accessToken = localStorage.getItem('accessToken');
         if (isLoading) {
             return;
@@ -178,7 +202,7 @@ export default function QuestionDetail({params}) {
             setIsLoading(false);
             router.push('/login');
         } else {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/voter/${questionId}?voterType=${type}`, {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/voter/${id}?voterType=${type}`, {
                 method: 'POST',
                 credentials: 'include',
                 headers: {
@@ -188,12 +212,20 @@ export default function QuestionDetail({params}) {
             });
 
             if (response.ok) {
-                setData((prevData) => ({
-                    ...prevData,
-                    voterCount: prevData.voterCount + 1,
-                    isVoter: true
-                }));
-            } else if (response.code === 400) {
+                if (type === 'question') {
+                    setQuestion((prevData) => ({
+                        ...prevData,
+                        voterCount: prevData.voterCount + 1,
+                        isVoter: true
+                    }));
+                } else if (type === 'answer') {
+                    setAnswerList((prevData) => prevData.map((answer) =>
+                        answer.id === id
+                            ? {...answer, voterCount: answer.voterCount + 1, isVoter: true}
+                            : answer
+                    ));
+                }
+            } else if (response.status === 400) {
                 const result = await response.json();
                 alert(result.message);
             } else {
@@ -203,7 +235,7 @@ export default function QuestionDetail({params}) {
         }
     };
 
-    const handleDeleteVoter = async (questionId, type) => {
+    const handleDeleteVoter = async (id, type) => {
         if (isLoading) {
             return;
         }
@@ -215,7 +247,7 @@ export default function QuestionDetail({params}) {
             setIsLoading(false);
             router.push('/login');
         } else {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/voter/${questionId}?voterType=${type}`, {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/voter/${id}?voterType=${type}`, {
                 method: 'DELETE',
                 credentials: 'include',
                 headers: {
@@ -225,12 +257,20 @@ export default function QuestionDetail({params}) {
             });
 
             if (response.ok) {
-                setData((prevData) => ({
-                    ...prevData,
-                    voterCount: prevData.voterCount - 1,
-                    isVoter: false
-                }));
-            } else if (response.code === 400) {
+                if (type === 'question') {
+                    setQuestion((prevData) => ({
+                        ...prevData,
+                        voterCount: prevData.voterCount - 1,
+                        isVoter: false
+                    }));
+                } else if (type === 'answer') {
+                    setAnswerList((prevData) => prevData.map((answer) =>
+                        answer.id === id
+                            ? {...answer, voterCount: answer.voterCount - 1, isVoter: false}
+                            : answer
+                    ));
+                }
+            } else if (response.status === 400) {
                 const result = await response.json();
                 alert(result.message);
             } else {
@@ -240,11 +280,12 @@ export default function QuestionDetail({params}) {
         }
     };
 
-    if (!data) {
+
+    if (!question) {
         return <div>Loading...</div>;
     }
 
-    const {subject, content, author, createdAt, modifiedAt, answerList, voterCount, isAuthor, isVoter} = data;
+    const {subject, content, author, createdAt, modifiedAt, voterCount, isAuthor, isVoter} = question;
 
     return (
         <div className="container mx-auto my-8 px-4">
@@ -266,9 +307,9 @@ export default function QuestionDetail({params}) {
                         )}
                     </div>
                     <div className="prose max-w-none mb-6">
-                            <ReactMarkdown  className="text-gray-700">
-                                {content}
-                            </ReactMarkdown>
+                        <ReactMarkdown className="text-gray-700">
+                            {content}
+                        </ReactMarkdown>
                     </div>
                     <div className="flex flex-wrap items-center text-sm text-gray-600 mb-6">
                         <div className="flex items-center mr-6 mb-2">
@@ -283,7 +324,6 @@ export default function QuestionDetail({params}) {
                         <div className="flex items-center mr-6 mb-2">
                             <button
                                 className={`px-4 py-2 rounded ${isVoter ? 'bg-green-600 text-white' : 'bg-transparent text-gray-800 border border-gray-800'} transition-colors duration-300`}
-                                // onClick={isVoter ? () => handleDeleteVoter(id, 'question') : () => handlePostVoter(id, 'question')}
                                 onClick={() => isVoter ? handleDeleteVoter(id, 'question') : handlePostVoter(id, 'question')}
                             >
                                 {isVoter ? '추천 취소' : '추천하기'}
@@ -304,8 +344,19 @@ export default function QuestionDetail({params}) {
                                         <div>
                                             <p className="text-gray-700 mb-2">{answer.content}</p>
                                             <div className="flex items-center text-sm text-gray-600">
-                                                <span className="mr-4">{answer.username}</span>
-                                                <span>{new Date(answer.createdAt).toLocaleString()}</span>
+                                                <span className="mr-4">{answer.author}</span>
+                                                <span>Created: {new Date(answer.createdAt).toLocaleString()}</span>
+                                                <span
+                                                    className="ml-4">Modified: {new Date(answer.modifiedAt).toLocaleString()}</span>
+                                            </div>
+                                            <div className="flex items-center mr-6 mb-2">
+                                                <button
+                                                    className={`px-4 py-2 rounded ${answer.isVoter ? 'bg-green-600 text-white' : 'bg-transparent text-gray-800 border border-gray-800'} transition-colors duration-300`}
+                                                    onClick={() => answer.isVoter ? handleDeleteVoter(answer.id, 'answer') : handlePostVoter(answer.id, 'answer')}
+                                                >
+                                                    {answer.isVoter ? '추천 취소' : '추천하기'}
+                                                </button>
+                                                <span className="ml-4">추천 수: {answer.voterCount}</span>
                                             </div>
                                         </div>
                                         {answer.isAuthor && (
