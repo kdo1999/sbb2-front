@@ -11,6 +11,11 @@ export default function QuestionDetail({params}) {
     const [answerContent, setAnswerContent] = useState('');
     const [errors, setErrors] = useState({});
     const [isLoading, setIsLoading] = useState(false);
+    const [page, setPage] = useState(0);
+    const [totalPages, setTotalPages] = useState(0);
+    const [sort, setSort] = useState('createdAt');
+    const [order, setOrder] = useState('desc');
+    const [selectedSortLabel, setSelectedSortLabel] = useState('recent');
     const router = useRouter();
 
     useEffect(() => {
@@ -56,7 +61,7 @@ export default function QuestionDetail({params}) {
                 router.push('/login');
             }
             const fetchAnswer = async () => {
-                const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/answer?questionId=${id}`, {
+                const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/answer?questionId=${id}&pageNum=${page}&order=${order}&sort=${sort}`, {
                     cache: 'no-store',
                     credentials: 'include',
                     headers: {
@@ -70,12 +75,13 @@ export default function QuestionDetail({params}) {
                     router.push('/login');
                 } else {
                     setAnswerList(result.data.content);
+                    setTotalPages(result.data.totalPages);
                 }
             };
 
             fetchAnswer();
         }
-    }, [id]);
+    }, [id, page, sort, order]);
 
     const handleAnswerSubmit = async (e) => {
         e.preventDefault();
@@ -280,6 +286,28 @@ export default function QuestionDetail({params}) {
         }
     };
 
+    const handleSortChange = (e) => {
+        if (e.target.value === 'recent') {
+            setSort('createdAt');
+            setOrder('desc');
+            setSelectedSortLabel('recent');
+        } else if (e.target.value === 'oldest') {
+            setSort('createdAt');
+            setOrder('asc');
+            setSelectedSortLabel('oldest');
+        } else if (e.target.value === 'votes') {
+            setSort('voter');
+            setOrder('desc');
+            setSelectedSortLabel('votes')
+        } else {
+            return;
+        }
+    };
+
+    const handlePageChange = (pageNumber) => {
+        setPage(pageNumber);
+    };
+
 
     if (!question) {
         return <div>Loading...</div>;
@@ -333,9 +361,18 @@ export default function QuestionDetail({params}) {
                     </div>
                 </div>
                 <div className="border-t border-gray-200 px-6 py-6">
-                    <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center">
-                        Answers
-                    </h2>
+                    <div className="flex justify-between items-center mb-4">
+                        <h2 className="text-2xl font-bold text-gray-800 flex items-center">
+                            Answers
+                        </h2>
+                        <div className="input-group">
+                            <select className="form-control ml-2" onChange={handleSortChange} value={selectedSortLabel}>
+                                <option value='recent'>최근 작성 순</option>
+                                <option value='oldest'>오래된 날짜 순</option>
+                                <option value='votes'>추천 많은 순</option>
+                            </select>
+                        </div>
+                    </div>
                     {answerList.length > 0 ? (
                         <ul className="space-y-6">
                             {answerList.map((answer) => (
@@ -378,6 +415,30 @@ export default function QuestionDetail({params}) {
                     ) : (
                         <p className="text-gray-600 italic">No answers yet.</p>
                     )}
+                </div>
+                <div className="flex justify-center mt-4">
+                    <ul className="flex space-x-2">
+                        <li className="page-item">
+                            <button className="page-link" onClick={() => handlePageChange(page !== 0 ? page - 1 : 0)}
+                                    disabled={page === 0}>
+                                이전
+                            </button>
+                        </li>
+                        {Array.from({length: totalPages}, (_, index) => (
+                            <li key={index} className={`page-item ${page === index ? 'active' : ''}`}>
+                                <button className="page-link" onClick={() => handlePageChange(index)}>
+                                    {index + 1}
+                                </button>
+                            </li>
+                        ))}
+                        <li className="page-item">
+                            <button className="page-link"
+                                    onClick={() => handlePageChange(page === totalPages - 1 ? page : page + 1)}
+                                    disabled={page === totalPages - 1}>
+                                다음
+                            </button>
+                        </li>
+                    </ul>
                 </div>
                 <div className="border-t border-gray-200 px-6 py-6">
                     <h2 className="text-2xl font-bold text-gray-800 mb-4">Write an Answer</h2>
