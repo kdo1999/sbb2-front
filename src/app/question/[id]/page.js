@@ -7,6 +7,7 @@ import ReactMarkdown from 'react-markdown';
 import AnswerList from '@/components/AnswerList';
 import Pagination from '@/components/Pagination';
 import AnswerForm from '@/components/AnswerForm';
+import CommentSection from '@/components/CommentSection';
 
 export default function QuestionDetail({params}) {
     const [question, setQuestion] = useState(null);
@@ -202,6 +203,7 @@ export default function QuestionDetail({params}) {
             }
         }
     };
+
     const handlePostVoter = async (id, type) => {
         const accessToken = localStorage.getItem('accessToken');
         if (isLoading) {
@@ -311,11 +313,12 @@ export default function QuestionDetail({params}) {
     const handlePageChange = (pageNumber) => {
         setPage(pageNumber);
     };
+
     if (!question) {
         return <div>Loading...</div>;
     }
 
-    const {subject, content, author, createdAt, modifiedAt, voterCount, isAuthor, isVoter} = question;
+    const {subject, content, author, createdAt, modifiedAt, voterCount, commentCount, isAuthor, isVoter} = question;
 
     return (
         <div className="container mx-auto my-8 px-4">
@@ -361,6 +364,7 @@ export default function QuestionDetail({params}) {
                             <span className="ml-4">추천 수: {voterCount}</span>
                         </div>
                     </div>
+                    <CommentSection commentCount={commentCount} parentId={id} parentType='question' />
                 </div>
                 <div className="border-t border-gray-200 px-6 py-6">
                     <div className="flex justify-between items-center mb-4">

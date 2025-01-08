@@ -1,6 +1,7 @@
 // src/components/AnswerList.js
 import React from 'react';
 import Link from 'next/link';
+import CommentSection from "@/components/CommentSection";
 
 const AnswerList = ({ answerList, handlePostVoter, handleDeleteVoter, deleteAnswerCheck }) => {
     return (
@@ -38,6 +39,8 @@ const AnswerList = ({ answerList, handlePostVoter, handleDeleteVoter, deleteAnsw
                             </div>
                         )}
                     </div>
+                        <CommentSection parentId={answer.id} parentType='answer' commentCount={answer.commentCount} />
+
                 </li>
             ))}
         </ul>
