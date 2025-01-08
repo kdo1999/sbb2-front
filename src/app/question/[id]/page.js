@@ -1,8 +1,12 @@
+// src/app/question/[id]/page.js
 "use client";
 import React, {useEffect, useState} from 'react';
 import Link from 'next/link';
 import {useRouter} from 'next/navigation';
 import ReactMarkdown from 'react-markdown';
+import AnswerList from '@/components/AnswerList';
+import Pagination from '@/components/Pagination';
+import AnswerForm from '@/components/AnswerForm';
 
 export default function QuestionDetail({params}) {
     const [question, setQuestion] = useState(null);
@@ -307,8 +311,6 @@ export default function QuestionDetail({params}) {
     const handlePageChange = (pageNumber) => {
         setPage(pageNumber);
     };
-
-
     if (!question) {
         return <div>Loading...</div>;
     }
@@ -373,101 +375,20 @@ export default function QuestionDetail({params}) {
                             </select>
                         </div>
                     </div>
-                    {answerList.length > 0 ? (
-                        <ul className="space-y-6">
-                            {answerList.map((answer) => (
-                                <li key={answer.id} className="bg-gray-50 rounded-lg p-4 shadow">
-                                    <div className="flex justify-between items-center">
-                                        <div>
-                                            <p className="text-gray-700 mb-2">{answer.content}</p>
-                                            <div className="flex items-center text-sm text-gray-600">
-                                                <span className="mr-4">{answer.author}</span>
-                                                <span>Created: {new Date(answer.createdAt).toLocaleString()}</span>
-                                                <span
-                                                    className="ml-4">Modified: {new Date(answer.modifiedAt).toLocaleString()}</span>
-                                            </div>
-                                            <div className="flex items-center mr-6 mb-2">
-                                                <button
-                                                    className={`px-4 py-2 rounded ${answer.isVoter ? 'bg-green-600 text-white' : 'bg-transparent text-gray-800 border border-gray-800'} transition-colors duration-300`}
-                                                    onClick={() => answer.isVoter ? handleDeleteVoter(answer.id, 'answer') : handlePostVoter(answer.id, 'answer')}
-                                                >
-                                                    {answer.isVoter ? '추천 취소' : '추천하기'}
-                                                </button>
-                                                <span className="ml-4">추천 수: {answer.voterCount}</span>
-                                            </div>
-                                        </div>
-                                        {answer.isAuthor && (
-                                            <div className="flex space-x-2">
-                                                <Link href={`/answer/edit/${answer.id}`}
-                                                      className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-300">
-                                                    Edit
-                                                </Link>
-                                                <button onClick={() => deleteAnswerCheck(answer.id)}
-                                                        className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors duration-300">
-                                                    Delete
-                                                </button>
-                                            </div>
-                                        )}
-                                    </div>
-                                </li>
-                            ))}
-                        </ul>
-                    ) : (
-                        <p className="text-gray-600 italic">No answers yet.</p>
-                    )}
+                    <AnswerList
+                        answerList={answerList}
+                        handlePostVoter={handlePostVoter}
+                        handleDeleteVoter={handleDeleteVoter}
+                        deleteAnswerCheck={deleteAnswerCheck}
+                    />
                 </div>
-                <div className="flex justify-center mt-4">
-                    <ul className="flex space-x-2">
-                        <li className="page-item">
-                            <button className="page-link" onClick={() => handlePageChange(page !== 0 ? page - 1 : 0)}
-                                    disabled={page === 0}>
-                                이전
-                            </button>
-                        </li>
-                        {Array.from({length: totalPages}, (_, index) => (
-                            <li key={index} className={`page-item ${page === index ? 'active' : ''}`}>
-                                <button className="page-link" onClick={() => handlePageChange(index)}>
-                                    {index + 1}
-                                </button>
-                            </li>
-                        ))}
-                        <li className="page-item">
-                            <button className="page-link"
-                                    onClick={() => handlePageChange(page === totalPages - 1 ? page : page + 1)}
-                                    disabled={page === totalPages - 1}>
-                                다음
-                            </button>
-                        </li>
-                    </ul>
-                </div>
-                <div className="border-t border-gray-200 px-6 py-6">
-                    <h2 className="text-2xl font-bold text-gray-800 mb-4">Write an Answer</h2>
-                    <form onSubmit={handleAnswerSubmit} className="bg-white p-6 rounded-lg shadow-md">
-                        <div className="mb-4">
-                            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="answerContent">
-                                Content
-                            </label>
-                            <textarea
-                                id="answerContent"
-                                name="answerContent"
-                                value={answerContent}
-                                onChange={(e) => setAnswerContent(e.target.value)}
-                                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                placeholder="Enter your answer"
-                                rows="5"
-                            />
-                            {errors.content && <p className="text-red-500 text-xs italic">{errors.content}</p>}
-                        </div>
-                        <div className="flex items-center justify-between">
-                            <button
-                                type="submit"
-                                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-                            >
-                                Submit
-                            </button>
-                        </div>
-                    </form>
-                </div>
+                <Pagination page={page} totalPages={totalPages} handlePageChange={handlePageChange}/>
+                <AnswerForm
+                    answerContent={answerContent}
+                    setAnswerContent={setAnswerContent}
+                    handleAnswerSubmit={handleAnswerSubmit}
+                    errors={errors}
+                />
             </div>
         </div>
     );
