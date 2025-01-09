@@ -28,7 +28,7 @@ export default function QuestionList() {
     useEffect(() => {
         const fetchData = async () => {
             const response =
-                await fetch(`${process.env.NEXT_PUBLIC_API_URL}/question?pageNum=${page}&kw=${searchKeyword}&order=${order}&sort=${sort}&categoryName=${selectedCategory}`,
+                await fetch(`${process.env.NEXT_PUBLIC_API_URL}/question?pageNum=${page}&kw=${searchKeyword}&order=${order}&sort=${sort}&categoryId=${selectedCategory}`,
                     { cache: 'no-store' }
                 );
             const data = await response.json();
@@ -78,9 +78,9 @@ export default function QuestionList() {
                     </li>
                     {categories.map(category => (
                         <li
-                            key={category.categoryName}
-                            className={`cursor-pointer ${selectedCategory === category.categoryName ? 'text-blue-500 font-bold' : ''}`}
-                            onClick={() => setSelectedCategory(category.categoryName)}
+                            key={category.categoryId}
+                            className={`cursor-pointer ${selectedCategory === category.categoryId ? 'text-blue-500 font-bold' : ''}`}
+                            onClick={() => setSelectedCategory(category.categoryId)}
                         >
                             {category.categoryDisplayName}
                         </li>

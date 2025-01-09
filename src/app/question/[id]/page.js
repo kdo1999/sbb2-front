@@ -328,7 +328,7 @@ export default function QuestionDetail({params}) {
                         <div className="flex items-center">
                             <h1 className="text-3xl font-bold text-gray-800 mr-4">{subject}</h1>
                             <select className="form-control" disabled>
-                                <option value={categoryResponse.categoryName}>{categoryResponse.categoryDisplayName}</option>
+                                <option value={categoryResponse.categoryId}>{categoryResponse.categoryDisplayName}</option>
                             </select>
                         </div>
                         {isAuthor && (

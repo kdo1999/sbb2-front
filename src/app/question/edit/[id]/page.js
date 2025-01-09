@@ -56,7 +56,7 @@ export default function UpdateQuestion({params}) {
                     } else if (response.status === 200) {
                         setSubject(result.data.subject);
                         setContent(result.data.content);
-                        setSelectedCategory(result.data.categoryResponse.categoryName);
+                        setSelectedCategory(result.data.categoryResponse.categoryId);
                     }
                 }
             };
@@ -78,7 +78,7 @@ export default function UpdateQuestion({params}) {
                     'Content-Type': 'application/json',
                     'Authorization': accessToken
                 },
-                body: JSON.stringify({categoryName: selectedCategory, subject: subject, content: content})
+                body: JSON.stringify({categoryId: selectedCategory, subject: subject, content: content})
             });
 
             const result = await response.json();
@@ -112,7 +112,7 @@ export default function UpdateQuestion({params}) {
                     >
                         <option key="default" value="">Select a category</option>
                         {categorys.map(category => (
-                            <option key={category.categoryName} value={category.categoryName}>
+                            <option key={category.categoryId} value={category.categoryId}>
                                 {category.categoryDisplayName}
                             </option>
                         ))}
