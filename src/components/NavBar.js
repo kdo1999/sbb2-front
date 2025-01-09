@@ -40,6 +40,14 @@ export default function NavBar() {
                                     </span>
                                 </li>
                                 <li className="nav-item">
+                                    <Link
+                                        href="/user/info"
+                                        className="block py-2 pr-4 pl-3 text-gray-700 hover:bg-gray-100 lg:hover:bg-transparent lg:border-0 lg:hover:text-blue-700 lg:p-0"
+                                    >
+                                        내정보
+                                    </Link>
+                                </li>
+                                <li className="nav-item">
                                     <button
                                         onClick={handleLogout}
                                         className="block py-2 pr-4 pl-3 text-gray-700 hover:bg-gray-100 lg:hover:bg-transparent lg:border-0 lg:hover:text-blue-700 lg:p-0"
@@ -55,7 +63,7 @@ export default function NavBar() {
                                         href="/login"
                                         className="block py-2 pr-4 pl-3 text-gray-700 hover:bg-gray-100 lg:hover:bg-transparent lg:border-0 lg:hover:text-blue-700 lg:p-0"
                                     >
-                                        로그인
+                                    로그인
                                     </Link>
                                 </li>
                                 <li className="nav-item">

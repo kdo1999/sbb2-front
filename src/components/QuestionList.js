@@ -106,6 +106,7 @@ export default function QuestionList() {
                         <th style={{ width: '50%' }}>제목</th>
                         <th>글쓴이</th>
                         <th>작성일시</th>
+                        <th>조회수</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -113,11 +114,14 @@ export default function QuestionList() {
                         <tr key={question.id} className="text-center">
                             <td>{index + 1}</td>
                             <td className="text-left">
-                                <Link href={`/question/${question.id}`} className="text-blue-500 hover:underline">{question.subject}</Link>
-                                {question.answerCount > 0 && <span className="text-red-500 small ml-2">[{question.answerCount}]</span>}
+                                <Link href={`/question/${question.id}`}
+                                      className="text-blue-500 hover:underline">{question.subject}</Link>
+                                {question.answerCount > 0 &&
+                                    <span className="text-red-500 small ml-2">[{question.answerCount}]</span>}
                             </td>
                             <td>{question.author?.username}</td>
                             <td>{new Date(question.createdAt).toLocaleString()}</td>
+                            <td>{question.viewCount}</td>
                         </tr>
                     ))}
                 </tbody>
