@@ -8,7 +8,20 @@ export default function UpdateQuestion({params}) {
     const [id, setId] = useState();
     const [errors, setErrors] = useState({});
     const router = useRouter();
+    const [categorys, setCategorys] = useState([]);
+    const [selectedCategory, setSelectedCategory] = useState('');
 
+    useEffect(() => {
+        const fetchCategories = async () => {
+            const response = await fetch('http://localhost:8080/api/v1/category');
+            const result = await response.json();
+            if (response.status === 200) {
+                setCategorys(result.data);
+            }
+        };
+
+        fetchCategories();
+    }, []);
     useEffect(() => {
         async function unwrapParams() {
             const unwrappedParams = await params;
@@ -33,16 +46,17 @@ export default function UpdateQuestion({params}) {
                         }
                     });
                     const result = await response.json();
-                    if (result.code === 401) {
+                    if (response.status === 401) {
                         localStorage.removeItem('accessToken');
                         localStorage.removeItem('username');
                         router.push('/login');
                     } else if (!result.data.isAuthor) {
                         alert('질문 작성자만 수정할 수 있습니다.');
                         router.push('/');
-                    } else {
+                    } else if (response.status === 200) {
                         setSubject(result.data.subject);
                         setContent(result.data.content);
+                        setSelectedCategory(result.data.categoryResponse.categoryName);
                     }
                 }
             };
@@ -64,7 +78,7 @@ export default function UpdateQuestion({params}) {
                     'Content-Type': 'application/json',
                     'Authorization': accessToken
                 },
-                body: JSON.stringify({subject: subject, content: content})
+                body: JSON.stringify({categoryName: selectedCategory, subject: subject, content: content})
             });
 
             const result = await response.json();
@@ -85,6 +99,26 @@ export default function UpdateQuestion({params}) {
         <div className="container mx-auto my-8 p-4">
             <h1 className="text-2xl font-bold mb-4">Update Question</h1>
             <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow-md">
+                <div className="mb-4">
+                    <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="category">
+                        Category
+                    </label>
+                    <select
+                        id="category"
+                        name="category"
+                        value={selectedCategory}
+                        onChange={(e) => setSelectedCategory(e.target.value)}
+                        className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                    >
+                        <option key="default" value="">Select a category</option>
+                        {categorys.map(category => (
+                            <option key={category.categoryName} value={category.categoryName}>
+                                {category.categoryDisplayName}
+                            </option>
+                        ))}
+                    </select>
+                    {errors.category && <p className="text-red-500 text-xs italic">{errors.category}</p>}
+                </div>
                 <div className="mb-4">
                     <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="subject">
                         Title

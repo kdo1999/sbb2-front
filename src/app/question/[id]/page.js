@@ -318,22 +318,27 @@ export default function QuestionDetail({params}) {
         return <div>Loading...</div>;
     }
 
-    const {subject, content, author, createdAt, modifiedAt, voterCount, commentCount, isAuthor, isVoter} = question;
+    const {subject, content, author, createdAt, modifiedAt, voterCount, commentCount, isAuthor, isVoter, categoryResponse} = question;
 
     return (
         <div className="container mx-auto my-8 px-4">
             <div className="bg-white rounded-lg shadow-lg overflow-hidden">
                 <div className="p-6">
                     <div className="flex justify-between items-center mb-6">
-                        <h1 className="text-3xl font-bold text-gray-800">{subject}</h1>
+                        <div className="flex items-center">
+                            <h1 className="text-3xl font-bold text-gray-800 mr-4">{subject}</h1>
+                            <select className="form-control" disabled>
+                                <option value={categoryResponse.categoryName}>{categoryResponse.categoryDisplayName}</option>
+                            </select>
+                        </div>
                         {isAuthor && (
                             <div className="flex space-x-2">
                                 <Link href={`/question/edit/${id}`}
-                                      className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-300">
+                                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-300">
                                     Edit
                                 </Link>
                                 <button onClick={deleteQuestionCheck}
-                                        className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors duration-300">
+                                    className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors duration-300">
                                     Delete
                                 </button>
                             </div>
@@ -386,7 +391,7 @@ export default function QuestionDetail({params}) {
                         deleteAnswerCheck={deleteAnswerCheck}
                     />
                 </div>
-                <Pagination page={page} totalPages={totalPages} handlePageChange={handlePageChange}/>
+                <Pagination page={page} totalPages={totalPages} handlePageChange={handlePageChange} />
                 <AnswerForm
                     answerContent={answerContent}
                     setAnswerContent={setAnswerContent}
