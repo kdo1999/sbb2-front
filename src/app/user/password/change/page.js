@@ -60,7 +60,7 @@ export default function Signup() {
                     setErrorMessage(result.message);
                 }
             } else {
-                setErrorMessage('An unexpected error occurred.');
+                setErrorMessage('알 수 없는 오류입니다. 관리자에게 문의해주세요');
             }
         }
     };

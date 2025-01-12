@@ -28,7 +28,7 @@ export default function PasswordReset() {
             setShowVerificationInput(true);
             setIsEmailSent(true);
         } else {
-            setMessage(result.message || 'An unexpected error occurred.');
+            setMessage(result.message || '알 수 없는 오류입니다. 관리자에게 문의해주세요');
         }
     };
 
@@ -43,8 +43,9 @@ export default function PasswordReset() {
         if (response.ok) {
             alert('임시 비밀번호가 이메일로 전송되었습니다. \n임시 비밀번호로 로그인 해주세요!');
             router.push('/login');
+        }else {
+            setMessage(result.message || '알 수 없는 오류입니다. 관리자에게 문의해주세요');
         }
-        setMessage('Verification code verified.');
     };
 
     return (
