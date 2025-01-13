@@ -8,8 +8,19 @@ export function UserProvider({ children }) {
     const [username, setUsername] = useState('');
 
     useEffect(() => {
-        const storedUsername = localStorage.getItem('username') || '';
-        setUsername(storedUsername);
+        const fetchUsername = async () => {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/member/info`, {
+                cache: 'no-store',
+                credentials: 'include',
+            });
+            const result = await response.json();
+
+            if (response.status === 200) {
+                setUsername(result.data.username);
+            }
+        };
+
+        fetchUsername();
     }, []);
 
     return (
