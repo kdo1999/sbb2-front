@@ -35,23 +35,23 @@ export default function UpdateQuestion({params}) {
     useEffect(() => {
         if (id) {
             const fetchData = async () => {
-                    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/question/${id}`, {
-                        cache: 'no-store',
-                        credentials: 'include',
-                    });
-                    const result = await response.json();
-                    if (response.status === 401) {
-                        localStorage.removeItem('accessToken');
-                        localStorage.removeItem('username');
-                        router.push('/login');
-                    } else if (!result.data.isAuthor) {
-                        alert('질문 작성자만 수정할 수 있습니다.');
-                        router.push('/');
-                    } else if (response.status === 200) {
-                        setSubject(result.data.subject);
-                        setContent(result.data.content);
-                        setSelectedCategory(result.data.categoryResponse.categoryId);
-                    }
+                const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/question/${id}`, {
+                    cache: 'no-store',
+                    credentials: 'include',
+                });
+                const result = await response.json();
+                if (response.status === 401) {
+                    localStorage.removeItem('accessToken');
+                    localStorage.removeItem('username');
+                    router.push('/login');
+                } else if (!result.data.isAuthor) {
+                    alert('질문 작성자만 수정할 수 있습니다.');
+                    router.push('/');
+                } else if (response.status === 200) {
+                    setSubject(result.data.subject);
+                    setContent(result.data.content);
+                    setSelectedCategory(result.data.categoryResponse.categoryId);
+                }
             };
             fetchData();
         }
@@ -60,32 +60,25 @@ export default function UpdateQuestion({params}) {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setErrors({});
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/question/${id}`, {
+            method: 'PATCH',
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({categoryId: selectedCategory, subject: subject, content: content})
+        });
 
-        const accessToken = localStorage.getItem('accessToken');
-        if (!accessToken) {
-            router.push('/login');
-        } else {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/question/${id}`, {
-                method: 'PATCH',
-                credentials: 'include',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': accessToken
-                },
-                body: JSON.stringify({categoryId: selectedCategory, subject: subject, content: content})
+        const result = await response.json();
+
+        if (response.ok) {
+            router.push(`/question/${id}`);
+        } else if (result.code === 400) {
+            const newErrors = {};
+            result.errorDetail.errors.forEach(error => {
+                newErrors[error.field] = error.reason;
             });
-
-            const result = await response.json();
-
-            if (response.ok) {
-                router.push(`/question/${id}`);
-            } else if (result.code === 400) {
-                const newErrors = {};
-                result.errorDetail.errors.forEach(error => {
-                    newErrors[error.field] = error.reason;
-                });
-                setErrors(newErrors);
-            }
+            setErrors(newErrors);
         }
     };
 
