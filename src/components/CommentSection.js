@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Pagination from "@/components/Pagination";
 import { useRouter } from 'next/navigation';
 
-const CommentSection = ({ commentCount, parentId, parentType }) => {
+const CommentSection = ({ rootQuestionId, commentCount, parentId, parentType }) => {
     const [showComments, setShowComments] = useState(false);
     const [showForm, setShowForm] = useState(false);
     const [comments, setComments] = useState([]);
@@ -53,7 +53,7 @@ const CommentSection = ({ commentCount, parentId, parentType }) => {
                 'Content-Type': 'application/json',
                 'Authorization': accessToken
             },
-            body: JSON.stringify({ parentId: parentId, parentType: parentType, content: commentContent })
+            body: JSON.stringify({ rootQuestionId: rootQuestionId, parentId: parentId, parentType: parentType, content: commentContent })
         });
         const result = await response.json();
         if (response.status === 401) {

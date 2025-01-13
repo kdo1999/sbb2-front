@@ -39,7 +39,7 @@ const AnswerList = ({ answerList, handlePostVoter, handleDeleteVoter, deleteAnsw
                             </div>
                         )}
                     </div>
-                        <CommentSection parentId={answer.id} parentType='answer' commentCount={answer.commentCount} />
+                        <CommentSection rootQuestionId={answer.questionId} parentId={answer.id} parentType='answer' commentCount={answer.commentCount} />
 
                 </li>
             ))}

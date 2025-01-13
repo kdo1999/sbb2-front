@@ -88,7 +88,7 @@ export default function QuestionList() {
                 </ul>
             </div>
             <div className="flex justify-between my-3">
-                <Link href="/question/create" className="btn btn-primary">질문 등록하기</Link>
+                <Link href={`/question/create?categoryId=${selectedCategory}`} className="btn btn-primary">질문 등록하기</Link>
                 <div className="input-group">
                     <input type="text" id="search_kw" className="form-control" />
                     <button className="btn btn-outline-secondary" type="button" id="btn_search" onClick={handleSearch}>찾기</button>

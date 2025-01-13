@@ -34,17 +34,10 @@ export default function QuestionDetail({params}) {
 
     useEffect(() => {
         if (id) {
-            const accessToken = localStorage.getItem('accessToken');
-            if (!accessToken) {
-                router.push('/login');
-            }
             const fetchQuestion = async () => {
                 const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/question/${id}`, {
                     cache: 'no-store',
                     credentials: 'include',
-                    headers: {
-                        'Authorization': accessToken
-                    }
                 });
                 const result = await response.json();
                 if (result.code === 401) {
@@ -61,22 +54,13 @@ export default function QuestionDetail({params}) {
 
     useEffect(() => {
         if (id) {
-            const accessToken = localStorage.getItem('accessToken');
-            if (!accessToken) {
-                router.push('/login');
-            }
             const fetchAnswer = async () => {
                 const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/answer?questionId=${id}&pageNum=${page}&order=${order}&sort=${sort}`, {
                     cache: 'no-store',
                     credentials: 'include',
-                    headers: {
-                        'Authorization': accessToken
-                    }
                 });
                 const result = await response.json();
                 if (result.code === 401) {
-                    localStorage.removeItem('accessToken');
-                    localStorage.removeItem('username');
                     router.push('/login');
                 } else {
                     setAnswerList(result.data.content);
@@ -99,38 +83,32 @@ export default function QuestionDetail({params}) {
         setErrors({});
 
         const accessToken = localStorage.getItem('accessToken');
-        if (!accessToken) {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/answer`, {
+            method: 'POST',
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({questionId: id, content: answerContent})
+        });
+        const result = await response.json();
+
+        if (response.ok) {
+            setAnswerContent('');
             setIsLoading(false);
-            router.push('/login');
-        } else {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/answer`, {
-                method: 'POST',
-                credentials: 'include',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': accessToken
-                },
-                body: JSON.stringify({questionId: id, content: answerContent})
+
+            setAnswerList((prevData) => [
+                ...prevData,
+                result.data
+            ]);
+        } else if (result.code === 400) {
+            const newErrors = {};
+            result.errorDetail.errors.forEach(error => {
+                newErrors[error.field] = error.reason;
             });
-            const result = await response.json();
+            setErrors(newErrors);
+            setIsLoading(false);
 
-            if (response.ok) {
-                setAnswerContent('');
-                setIsLoading(false);
-
-                setAnswerList((prevData) => [
-                    ...prevData,
-                    result.data
-                ]);
-            } else if (result.code === 400) {
-                const newErrors = {};
-                result.errorDetail.errors.forEach(error => {
-                    newErrors[error.field] = error.reason;
-                });
-                setErrors(newErrors);
-                setIsLoading(false);
-
-            }
         }
     };
 
@@ -145,28 +123,22 @@ export default function QuestionDetail({params}) {
     const handleQuestionDelete = async () => {
         setErrors({});
 
-        const accessToken = localStorage.getItem('accessToken');
-        if (!accessToken) {
-            router.push('/login');
-        } else {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/question/${id}`, {
-                method: 'DELETE',
-                credentials: 'include',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': accessToken
-                },
-            });
-            console.log(response);
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/question/${id}`, {
+            method: 'DELETE',
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+        console.log(response);
 
-            const result = await response.json();
+        const result = await response.json();
 
-            if (result.code === 401) {
-                alert('질문 삭제는 질문 작성자만 가능합니다.');
-            } else if (response.ok) {
-                alert('질문이 삭제되었습니다.');
-                router.push('/');
-            }
+        if (result.code === 401) {
+            alert('질문 삭제는 질문 작성자만 가능합니다.');
+        } else if (response.ok) {
+            alert('질문이 삭제되었습니다.');
+            router.push('/');
         }
     };
 
@@ -179,28 +151,22 @@ export default function QuestionDetail({params}) {
     }
 
     const handleAnswerDelete = async (answerId) => {
-        const accessToken = localStorage.getItem('accessToken');
-        if (!accessToken) {
-            router.push('/login');
-        } else {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/answer/${answerId}`, {
-                method: 'DELETE',
-                credentials: 'include',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': accessToken
-                },
-            });
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/answer/${answerId}`, {
+            method: 'DELETE',
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
 
-            if (response.ok) {
-                setAnswerList((prevData) => prevData.filter((answer) => answer.id !== answerId));
-            } else if (response.code === 401) {
-                alert('답변 삭제는 답변 작성자만 가능합니다.');
-            } else if (response.code === 400) {
-                alert('답변 삭제 중 오류가 발생했습니다.');
-            } else {
-                alert('답변 삭제 중 오류가 발생했습니다.');
-            }
+        if (response.ok) {
+            setAnswerList((prevData) => prevData.filter((answer) => answer.id !== answerId));
+        } else if (response.code === 401) {
+            alert('답변 삭제는 답변 작성자만 가능합니다.');
+        } else if (response.code === 400) {
+            alert('답변 삭제 중 오류가 발생했습니다.');
+        } else {
+            alert('답변 삭제 중 오류가 발생했습니다.');
         }
     };
 
@@ -210,41 +176,35 @@ export default function QuestionDetail({params}) {
             return;
         }
         setIsLoading(true);
-        if (!accessToken) {
-            setIsLoading(false);
-            router.push('/login');
-        } else {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/voter/${id}?voterType=${type}`, {
-                method: 'POST',
-                credentials: 'include',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': accessToken
-                }
-            });
-
-            if (response.ok) {
-                if (type === 'question') {
-                    setQuestion((prevData) => ({
-                        ...prevData,
-                        voterCount: prevData.voterCount + 1,
-                        isVoter: true
-                    }));
-                } else if (type === 'answer') {
-                    setAnswerList((prevData) => prevData.map((answer) =>
-                        answer.id === id
-                            ? {...answer, voterCount: answer.voterCount + 1, isVoter: true}
-                            : answer
-                    ));
-                }
-            } else if (response.status === 400) {
-                const result = await response.json();
-                alert(result.message);
-            } else {
-                alert('추천 중 오류가 발생했습니다.');
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/voter/${id}?voterType=${type}`, {
+            method: 'POST',
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json',
             }
-            setIsLoading(false);
+        });
+
+        if (response.ok) {
+            if (type === 'question') {
+                setQuestion((prevData) => ({
+                    ...prevData,
+                    voterCount: prevData.voterCount + 1,
+                    isVoter: true
+                }));
+            } else if (type === 'answer') {
+                setAnswerList((prevData) => prevData.map((answer) =>
+                    answer.id === id
+                        ? {...answer, voterCount: answer.voterCount + 1, isVoter: true}
+                        : answer
+                ));
+            }
+        } else if (response.status === 400) {
+            const result = await response.json();
+            alert(result.message);
+        } else {
+            alert('추천 중 오류가 발생했습니다.');
         }
+        setIsLoading(false);
     };
 
     const handleDeleteVoter = async (id, type) => {
@@ -254,42 +214,35 @@ export default function QuestionDetail({params}) {
 
         setIsLoading(true);
 
-        const accessToken = localStorage.getItem('accessToken');
-        if (!accessToken) {
-            setIsLoading(false);
-            router.push('/login');
-        } else {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/voter/${id}?voterType=${type}`, {
-                method: 'DELETE',
-                credentials: 'include',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': accessToken
-                }
-            });
-
-            if (response.ok) {
-                if (type === 'question') {
-                    setQuestion((prevData) => ({
-                        ...prevData,
-                        voterCount: prevData.voterCount - 1,
-                        isVoter: false
-                    }));
-                } else if (type === 'answer') {
-                    setAnswerList((prevData) => prevData.map((answer) =>
-                        answer.id === id
-                            ? {...answer, voterCount: answer.voterCount - 1, isVoter: false}
-                            : answer
-                    ));
-                }
-            } else if (response.status === 400) {
-                const result = await response.json();
-                alert(result.message);
-            } else {
-                alert('추천 중 오류가 발생했습니다.');
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/voter/${id}?voterType=${type}`, {
+            method: 'DELETE',
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json',
             }
-            setIsLoading(false);
+        });
+
+        if (response.ok) {
+            if (type === 'question') {
+                setQuestion((prevData) => ({
+                    ...prevData,
+                    voterCount: prevData.voterCount - 1,
+                    isVoter: false
+                }));
+            } else if (type === 'answer') {
+                setAnswerList((prevData) => prevData.map((answer) =>
+                    answer.id === id
+                        ? {...answer, voterCount: answer.voterCount - 1, isVoter: false}
+                        : answer
+                ));
+            }
+        } else if (response.status === 400) {
+            const result = await response.json();
+            alert(result.message);
+        } else {
+            alert('추천 중 오류가 발생했습니다.');
         }
+        setIsLoading(false);
     };
 
     const handleSortChange = (e) => {
@@ -318,7 +271,19 @@ export default function QuestionDetail({params}) {
         return <div>Loading...</div>;
     }
 
-    const {subject, content, author, createdAt, modifiedAt, voterCount, commentCount, isAuthor, isVoter, categoryResponse, viewCount} = question;
+    const {
+        subject,
+        content,
+        author,
+        createdAt,
+        modifiedAt,
+        voterCount,
+        commentCount,
+        isAuthor,
+        isVoter,
+        categoryResponse,
+        viewCount
+    } = question;
 
     return (
         <div className="container mx-auto my-8 px-4">
@@ -328,17 +293,18 @@ export default function QuestionDetail({params}) {
                         <div className="flex items-center">
                             <h1 className="text-3xl font-bold text-gray-800 mr-4">{subject}</h1>
                             <select className="form-control" disabled>
-                                <option value={categoryResponse.categoryId}>{categoryResponse.categoryDisplayName}</option>
+                                <option
+                                    value={categoryResponse.categoryId}>{categoryResponse.categoryDisplayName}</option>
                             </select>
                         </div>
                         {isAuthor && (
                             <div className="flex space-x-2">
                                 <Link href={`/question/edit/${id}`}
-                                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-300">
+                                      className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-300">
                                     Edit
                                 </Link>
                                 <button onClick={deleteQuestionCheck}
-                                    className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors duration-300">
+                                        className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors duration-300">
                                     Delete
                                 </button>
                             </div>
@@ -372,7 +338,8 @@ export default function QuestionDetail({params}) {
                             <span className="ml-4">추천 수: {voterCount}</span>
                         </div>
                     </div>
-                    <CommentSection commentCount={commentCount} parentId={id} parentType='question'/>
+                    <CommentSection rootQuestionId={id} commentCount={commentCount} parentId={id}
+                                    parentType='question'/>
                 </div>
                 <div className="border-t border-gray-200 px-6 py-6">
                     <div className="flex justify-between items-center mb-4">
@@ -394,7 +361,7 @@ export default function QuestionDetail({params}) {
                         deleteAnswerCheck={deleteAnswerCheck}
                     />
                 </div>
-                <Pagination page={page} totalPages={totalPages} handlePageChange={handlePageChange} />
+                <Pagination page={page} totalPages={totalPages} handlePageChange={handlePageChange}/>
                 <AnswerForm
                     answerContent={answerContent}
                     setAnswerContent={setAnswerContent}

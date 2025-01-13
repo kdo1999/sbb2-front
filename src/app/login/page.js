@@ -1,12 +1,12 @@
 "use client";
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { useUser } from '@/provider/UserProvider';
+import {useState} from 'react';
+import {useRouter} from 'next/navigation';
+import {useUser} from '@/provider/UserProvider';
 import Link from 'next/link';
 
 export default function Login() {
     const router = useRouter();
-    const { setUsername } = useUser();
+    const {setUsername} = useUser();
     const [errorMessage, setErrorMessage] = useState('');
 
     const handleSubmit = async (e) => {
@@ -28,11 +28,7 @@ export default function Login() {
         const result = await response.json();
 
         if (response.ok) {
-            const accessToken = response.headers.get('Authorization');
-            const { username } = result.data;
-
-            localStorage.setItem('accessToken', accessToken);
-            localStorage.setItem('username', username);
+            const {username} = result.data;
             setUsername(username); // Update context state
             router.push('/');
             router.refresh();
@@ -49,6 +45,14 @@ export default function Login() {
             }
         }
     };
+
+    const handleNaverLogin = async () => {
+        window.location.href = "http://localhost:8080/oauth2/authorization/naver"
+    }
+
+    const handleKakaoLogin = () => {
+        window.location.href = "http://localhost:8080/oauth2/authorization/kakao"
+    }
 
     return (
         <div className="flex items-center justify-center min-h-screen bg-gray-100">
@@ -75,6 +79,12 @@ export default function Login() {
                     <Link href="/user/password/reset" className="text-gray-500">
                         Forgot Password?
                     </Link>
+                </div>
+                <div>
+                    <button onClick={handleNaverLogin}>네이버 로그인</button>
+                </div>
+                <div>
+                    <button onClick={handleKakaoLogin}>카카오 로그인</button>
                 </div>
             </div>
         </div>

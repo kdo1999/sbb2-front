@@ -22,6 +22,7 @@ export default function UpdateQuestion({params}) {
 
         fetchCategories();
     }, []);
+
     useEffect(() => {
         async function unwrapParams() {
             const unwrappedParams = await params;
@@ -34,16 +35,9 @@ export default function UpdateQuestion({params}) {
     useEffect(() => {
         if (id) {
             const fetchData = async () => {
-                const accessToken = localStorage.getItem('accessToken');
-                if (!accessToken) {
-                    router.push('/login');
-                } else {
                     const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/question/${id}`, {
                         cache: 'no-store',
                         credentials: 'include',
-                        headers: {
-                            'Authorization': accessToken
-                        }
                     });
                     const result = await response.json();
                     if (response.status === 401) {
@@ -58,7 +52,6 @@ export default function UpdateQuestion({params}) {
                         setContent(result.data.content);
                         setSelectedCategory(result.data.categoryResponse.categoryId);
                     }
-                }
             };
             fetchData();
         }
@@ -74,6 +67,7 @@ export default function UpdateQuestion({params}) {
         } else {
             const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/question/${id}`, {
                 method: 'PATCH',
+                credentials: 'include',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': accessToken

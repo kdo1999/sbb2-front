@@ -1,6 +1,6 @@
 "use client";
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import {useState} from 'react';
+import {useRouter} from 'next/navigation';
 
 export default function Signup() {
     const router = useRouter();
@@ -13,7 +13,7 @@ export default function Signup() {
     const [errorMessage, setErrorMessage] = useState('');
 
     const handleChange = (e) => {
-        const { name, value } = e.target;
+        const {name, value} = e.target;
         setFormData((prevData) => ({
             ...prevData,
             [name]: value
@@ -104,7 +104,8 @@ export default function Signup() {
                         />
                     </div>
                     <div>
-                        <label htmlFor="passwordCheck" className="block text-sm font-medium text-gray-700">Password Check</label>
+                        <label htmlFor="passwordCheck" className="block text-sm font-medium text-gray-700">Password
+                            Check</label>
                         <input
                             type="password"
                             name="passwordCheck"

@@ -7,22 +7,14 @@ import { useEffect } from 'react';
 export default function NavBar() {
     const { username, setUsername } = useUser();
 
-    useEffect(() => {
-        const storedUsername = localStorage.getItem('username') || '';
-        setUsername(storedUsername);
-    }, [setUsername]);
-
     const handleLogout = async () => {
         await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/logout`, {
             method: 'POST',
             credentials: 'include',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': localStorage.getItem('accessToken'),
             },
         });
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('username');
         setUsername(''); // Context state update
     };
 

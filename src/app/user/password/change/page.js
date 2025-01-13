@@ -1,6 +1,6 @@
 "use client";
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import {useState} from 'react';
+import {useRouter} from 'next/navigation';
 
 export default function Signup() {
     const router = useRouter();
@@ -12,7 +12,7 @@ export default function Signup() {
     const [errorMessage, setErrorMessage] = useState('');
 
     const handleChange = (e) => {
-        const { name, value } = e.target;
+        const {name, value} = e.target;
         setFormData((prevData) => ({
             ...prevData,
             [name]: value
@@ -20,10 +20,6 @@ export default function Signup() {
     };
 
     const handleSubmit = async (e) => {
-        const accessToken = localStorage.getItem('accessToken');
-            if (!accessToken) {
-                router.push('/login');
-            }
         e.preventDefault();
         setErrorMessage(''); // Clear previous error message
 
@@ -36,7 +32,6 @@ export default function Signup() {
             method: 'PATCH',
             credentials: 'include',
             headers: {
-                'Authorization': accessToken,
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
@@ -95,7 +90,8 @@ export default function Signup() {
                         />
                     </div>
                     <div>
-                        <label htmlFor="passwordCheck" className="block text-sm font-medium text-gray-700">비밀번호 확인</label>
+                        <label htmlFor="passwordCheck" className="block text-sm font-medium text-gray-700">비밀번호
+                            확인</label>
                         <input
                             type="password"
                             name="passwordCheck"
